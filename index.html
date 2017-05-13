@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<head>
+
+
+<link href="https://fonts.googleapis.com/css?family=Abel|Pacifico" rel="stylesheet">
+<script src="https://download.affectiva.com/js/3.2/affdex.js"></script>
+<script type="text/javascript" src="//code.jquery.com/jquery-3.1.0.js"></script>
+<link href="style.css" rel="stylesheet">
+<title>Detect Emotion</title>
+<style>
+
+
+</style>
+</head>
+
+<body>
+
+<!-- include d3.js -->
+<script src="https://d3js.org/d3.v4.min.js"></script>
+
+<!-- include custom javascript -->
+<script src="visuals.js"></script>
+<h1 style="text-align: center;">Emotion Detector</h1>
+  <hr style="width:75%; border-top: 3px solid #452142;">
+  <div class="container-fluid">
+    <div class="row">
+     <div class="buttons">
+      <button id="start"  onclick="onStart()">Start</button>
+    
+      <button id="stop" onclick="onStop()">Stop</button>
+
+      <button id="reset" onclick="onReset()">Reset</button>
+      <br>
+      <div class="results-heading" id="msg3" style="display: none">
+            <strong>Scroll Down to see the visualizations!</strong>
+        </div>
+    </div>
+    <br>
+      <div class="col-md-4">
+      
+          <div class="demo-message" id="msg" style="display: none">
+            <p>Emotions detector is being initialized, please wait...</p>
+        </div>
+        <br>
+          <div class="results-heading" id="msg2" style="display: none">
+            <strong><u>EMOTION TRACKING RESULTS</u></strong>
+        </div>
+          <div id="results" style="word-wrap:break-word;"></div>
+        
+      </div>
+    </div>
+    
+     <div class="col-md-8" id="affdex_elements" style="width:680px;height:480px;"></div>
+  </div>
+</body>
+
+
+<script type='text/javascript'>
+      
+      
+      
+      
+      // SDK Needs to create video and canvas nodes in the DOM in order to function
+      // Here we are adding those nodes a predefined div.
+      var divRoot = $("#affdex_elements")[0];
+      var width = 640;
+      var height = 480;
+      var time = 0;
+      //declare and initiate data: array of objects with id and values for each
+      var data=[
+    {
+        "id": "joy",
+        "values": [
+            
+        ]
+    },
+    {
+        "id": "anger",
+        "values": [
+        ]
+    },
+    {
+        "id": "sadness",
+        "values": [
+            
+        ]
+    },
+    {
+        "id": "disgust",
+        "values": [
+            
+        ]
+    },
+    {
+        "id": "fear",
+        "values": [
+            
+        ]
+    },
+    {
+        "id": "surprise",
+        "values": [
+            
+        ]
+    },
+    {
+        "id": "contempt",
+        "values": [
+            
+        ]
+    }
+    ];
+
+      var faceMode = affdex.FaceDetectorMode.LARGE_FACES;
+      //initiate totals for each emotion
+      var joyTotal = 0,
+          angerTotal = 0,
+          disgustTotal = 0,
+          fearTotal = 0,
+          sadTotal= 0,
+          surpriseTotal = 0,
+          contemptTotal = 0;
+
+      var detectAmount=0;
+      //Construct a CameraDetector and specify the image width / height and face detector mode.
+      var detector = new affdex.CameraDetector(divRoot, width, height, faceMode);
+
+      //Enable detection of all Expressions, Emotions and Emojis classifiers.
+      detector.detectAllEmotions();
+      detector.detectAllExpressions();
+      detector.detectAllEmojis();
+      detector.detectAllAppearance();
+
+      //Add a callback to notify when the detector is initialized and ready for runing.
+      detector.addEventListener("onInitializeSuccess", function() {
+        console.log("Detector initialized");
+        //Display canvas instead of video feed because we want to draw the feature points on it
+        $("#face_video_canvas").css("display", "block");
+        $("#face_video").css("display", "none");
+        $("#msg").css("display", "none");
+        $("#msg2").css("display","block");
+      });
+
+      function log(node_name, msg) {
+        $(node_name).append("<span>" + msg + "</span><br />")
+      }
+
+      //function executes when Start button is pushed.
+      function onStart() {
+        if (detector && !detector.isRunning) {
+          detector.start();
+        }
+        $("#msg").css("display","block");
+
+      }
+
+      //function executes when the Stop button is pushed.
+      function onStop() {
+        if (detector && detector.isRunning) {
+          detector.removeEventListener();
+          detector.stop();
+          $("#msg2").css("display","none");
+          $("#msg3").css("display","block");
+        }
+      };
+
+      //function executes when the Reset button is pushed.
+      function onReset() {
+        resetData();
+        svgReset();
+        $("#msg3").css("display","none");
+        if (detector && detector.isRunning) {
+          detector.reset();
+
+
+          $('#results').html("");
+        }
+      };
+
+      //Add a callback to notify when camera access is allowed
+      detector.addEventListener("onWebcamConnectSuccess", function() {
+        // log('#logs', "Webcam access allowed");
+      });
+
+      //Add a callback to notify when camera access is denied
+      detector.addEventListener("onWebcamConnectFailure", function() {
+        // log('#logs', "webcam denied");
+
+
+      });
+
+      //Add a callback to notify when detector is stopped
+      detector.addEventListener("onStopSuccess", function() {
+        //generate total values for all emotions
+        var totalAmount = joyTotal+angerTotal+sadTotal+disgustTotal+fearTotal+surpriseTotal+contemptTotal;
+
+        //preparing data for bubble chart
+        var totalEmotions = {
+          "Joy": getPerc(joyTotal,totalAmount),
+            "Anger": getPerc(angerTotal,totalAmount),
+            "Sadness": getPerc(sadTotal,totalAmount),
+            "Disgust": getPerc(disgustTotal,totalAmount),
+            "Fear": getPerc(fearTotal,totalAmount),
+            "Surprise": getPerc(surpriseTotal,totalAmount),
+            "Contempt": getPerc(contemptTotal,totalAmount)
+
+
+        };
+
+       
+        //data formatted for bubble chart 
+        var totalData = {
+        "children": [{
+            "emotion": "Joy",
+            "average": totalEmotions.Joy
+        }, {
+            "emotion": "Anger",
+            "average": totalEmotions.Anger
+        }, {
+            "emotion": "Sadness",
+            "average": totalEmotions.Sadness
+        }, {
+            "emotion": "Disgust",
+            "average": totalEmotions.Disgust
+        }, {
+            "emotion": "Fear",
+            "average": totalEmotions.Fear
+        }, {
+            "emotion": "Surprise",
+            "average": totalEmotions.Surprise
+        },{
+            "emotion": "Content",
+            "average": totalEmotions.Contempt
+        }]
+    };
+        
+        
+
+
+        //call visuals.js to generate the visualizations
+        drawBubbles(totalData);
+        drawLines(data,time);
+
+        $("#results").html("");
+      });
+
+      //Add a callback to receive the results from processing an image.
+      //The faces object contains the list of the faces detected in an image.
+      //Faces object contains probabilities for all the different expressions, emotions and appearance metrics
+      detector.addEventListener("onImageResultsSuccess", function(faces, image, timestamp) {
+        $('#results').html("");
+        log('#results', "Timestamp: " + timestamp.toFixed(2));
+        time = timestamp.toFixed(2);
+
+        log('#results', "Number of faces found: " + faces.length);
+        if (faces.length > 0) {
+
+          //get each value number for each emotion
+          var j = Number(faces[0].emotions.joy.toFixed(0)),
+          a = Number(faces[0].emotions.anger.toFixed(0)),
+          sad = Number(faces[0].emotions.sadness.toFixed(0)),
+          d = Number(faces[0].emotions.disgust.toFixed(0)),
+          f = Number(faces[0].emotions.fear.toFixed(0)),
+          sur = Number(faces[0].emotions.surprise.toFixed(0)),
+          c = Number(faces[0].emotions.contempt.toFixed(0));
+
+          //use loop to get data for each emotion, get timestamp and value at that time and push this data object into our array of data
+          var emotArray= [j,a,sad,d,f,sur,c];
+          for(i=0; i<7; i++){
+            var item = {"time": time, "amount": emotArray[i]};
+            data[i].values.push(item);
+
+          }
+          //calculate totals
+          joyTotal += j;
+          angerTotal += a;
+          sadTotal+= sad;
+          disgustTotal += d;
+          fearTotal += f;
+          surpriseTotal += sur;
+          contemptTotal += c;
+
+
+
+          log('#results', "Appearance: " + JSON.stringify(faces[0].appearance));
+          log('#results', "Emotions: " + JSON.stringify(faces[0].emotions, function(key, val) { return val.toFixed ? Number(val.toFixed(0)) : val;
+          }));
+          log('#results', "Expressions: " + JSON.stringify(faces[0].expressions, function(key, val) {
+            return val.toFixed ? Number(val.toFixed(0)) : val;
+          }));
+          log('#results', "Emoji: " + faces[0].emojis.dominantEmoji);
+          drawFeaturePoints(image, faces[0].featurePoints);
+        }
+
+
+
+       
+
+      });
+
+    
+
+      //Draw the detected facial feature points on the image
+      function drawFeaturePoints(img, featurePoints) {
+        var contxt = $('#face_video_canvas')[0].getContext('2d');
+
+        var hRatio = contxt.canvas.width / img.width;
+        var vRatio = contxt.canvas.height / img.height;
+        var ratio = Math.min(hRatio, vRatio);
+
+        contxt.strokeStyle = "#FFFFFF";
+        for (var id in featurePoints) {
+          contxt.beginPath();
+          contxt.arc(featurePoints[id].x,
+            featurePoints[id].y, 2, 0, 2 * Math.PI);
+          contxt.stroke();
+
+        }
+      }
+
+      //create a percentage given total values and values for that emotion
+      function getPerc(emotionTotal, totalAmount){
+        var perc=(emotionTotal/totalAmount)*100;
+        return perc.toFixed(0);
+      }
+
+      //used when user presses reset button. Clears data and visuals.
+      function resetData(){
+
+        data=[
+              {
+                  "id": "joy",
+                  "values": []
+              },
+              {
+                  "id": "anger",
+                  "values": []
+              },
+              {
+                  "id": "sadness",
+                  "values": []
+              },
+              {
+                  "id": "disgust",
+                  "values": []
+              },
+              {
+                  "id": "fear",
+                  "values": []
+              },
+              {
+                  "id": "surprise",
+                  "values": []
+              },
+              {
+                  "id": "contempt",
+                  "values": []
+              }
+            ]
+
+      joyTotal = 0,
+          angerTotal = 0,
+          disgustTotal = 0,
+          fearTotal = 0,
+          sadTotal= 0,
+          surpriseTotal = 0,
+          contemptTotal = 0;
+
+      detectAmount=0;
+
+
+      }
+
+      
+
+
+
+
+</script>
+
+  <script>
+  // tell the embed parent frame the height of the content
+  if (window.parent && window.parent.parent){
+    window.parent.parent.postMessage(["resultsFrame", {
+      height: document.body.getBoundingClientRect().height,
+      slug: "opyh5e8d"
+    }], "*")
+  }
+</script>

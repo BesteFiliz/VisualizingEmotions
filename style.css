@@ -1,0 +1,103 @@
+h1{
+	font-family: 'Pacifico', cursive;
+	color: #913653;
+}
+
+body{
+	font-family: 'Abel', sans-serif;
+  color: #150A1A;
+  background-color: #FBF6EA;
+}
+
+.buttons{
+  text-align:  center;
+
+}
+
+
+
+.col-md-4, .col-md-8{
+	position: relative;
+	min-height: 1px;
+	padding-left: 15px;
+	float:left;
+}
+.col-md-4{
+	width: 33%;
+
+}
+.col-md-8{
+	width:66%;
+}
+
+.line{
+  fill: none;
+
+
+    stroke: #F99C23;/*joy-orange*/
+
+
+    stroke-width: 2.5px;
+
+}
+
+.line2{
+  fill: none;
+
+
+    stroke: #CE4141;/*anger-red*/
+
+
+    stroke-width: 2.5px;
+
+}
+.Sadness{
+  fill: none;
+
+
+    stroke: #505DD5;/*sadness-blue*/
+
+
+    stroke-width: 2.5px;
+
+}
+.line4{
+  fill: none;
+
+
+    stroke: #38B649;/*disgust-green*/
+
+
+    stroke-width: 2px;
+
+}
+
+.line5{
+  fill: none;
+
+
+    stroke: #C132C6;/*fear-pink*/
+
+
+    stroke-width: 2px;
+
+}
+.line6{
+  fill: none;
+
+
+    stroke: #E6D80C;/*surprise-yellow*/
+
+
+    stroke-width: 2px;
+
+}
+.line7{
+  fill: none;
+
+
+    stroke: #6F5741;/*content-brown*/
+
+
+    stroke-width: 2px;
+}
