@@ -1,4 +1,6 @@
 # VisualizingEmotions
+
+Go To https://marcrzzz.github.io/VisualizingEmotions/ to check it out
 Detects your facial expressions and determines your emotions. Displays visualizations based on those emotions. HCI class Final Project.
 
 Used javascript and the javascript library D3 to create the site and the visualizations. Used Affectiva Web SDK which is also using javascript. 
